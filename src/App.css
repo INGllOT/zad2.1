@@ -1,0 +1,86 @@
+/* App.css */
+
+/* Kontener główny */
+#root {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+    text-align: center;
+  }
+  
+  .App {
+    font-family: Arial, sans-serif;
+  }
+  
+  /* Styl dla ikon kategorii */
+  .timeline-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  
+  /* Stylizacja formularza dodawania wydarzenia */
+  .event-form {
+    margin-bottom: 30px;
+  }
+  
+  .event-form h2 {
+    margin-bottom: 15px;
+  }
+  
+  .error-message {
+    color: #dc3545;
+    font-size: 0.9em;
+    margin-bottom: 10px;
+  }
+  
+  /* Stylizacja elementu listy wydarzeń */
+  .timeline-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 20px;
+  }
+  
+  .timeline-content {
+    background: #fff;
+    border-radius: 5px;
+    padding: 15px;
+    margin-left: 15px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: calc(100% - 60px);
+  }
+  
+  .title {
+    font-size: 1.25em;
+    margin-bottom: 5px;
+  }
+  
+  .date {
+    font-size: 0.9em;
+    color: #999;
+    margin-bottom: 10px;
+  }
+  
+  .description {
+    margin-bottom: 15px;
+  }
+  
+  .category {
+    font-weight: bold;
+    color: #555;
+  }
+  
+  /* Przycisk */
+  .btn {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .btn-danger {
+    background-color: #dc3545;
+    color: white;
+  }
+  
