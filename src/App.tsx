@@ -3,7 +3,6 @@ import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
 function App() {
-  // State for storing events
   const [events, setEvents] = useState([
     {
       id: 1,
@@ -39,7 +38,15 @@ function App() {
     },
   ]);
 
-  // State for form values and editing
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [adminCredentials, setAdminCredentials] = useState({
+    username: "admin",
+    password: "admin",
+  });
+
   const [newEvent, setNewEvent] = useState({
     name: "",
     startDate: "",
@@ -48,24 +55,12 @@ function App() {
     category: "",
   });
   const [editingEventId, setEditingEventId] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
 
+  const [sortCriterion, setSortCriterion] = useState("startDate");
+  const [sortOrder, setSortOrder] = useState("asc");
 
- // State for other necessary data
- const [isLoggedIn, setIsLoggedIn] = useState(false);
- const [username, setUsername] = useState("");
- const [password, setPassword] = useState("");
- const [newPassword, setNewPassword] = useState("");
-
-// State for storing admin credentials
-const [adminCredentials, setAdminCredentials] = useState({
-  username: "admin",
-  password: "admin",
-});
-
-
-
-   // Function to handle login
-   const handleLogin = () => {
+  const handleLogin = () => {
     if (username === adminCredentials.username && password === adminCredentials.password) {
       setIsLoggedIn(true);
       setUsername("");
@@ -75,9 +70,25 @@ const [adminCredentials, setAdminCredentials] = useState({
     }
   };
 
+  //   // Date filter state
+  //   const [fromDate, setFromDate] = useState("");
+  //   const [toDate, setToDate] = useState("");
+  
 
-   // Function to change the password
-   const handleChangePassword = () => {
+  // // Function to filter events by date range
+  // const filteredEvents = events.filter(event => {
+  //   const eventDate = new Date(event.startDate).getTime();
+  //   const fromDateValue = fromDate ? new Date(fromDate).getTime() : null;
+  //   const toDateValue = toDate ? new Date(toDate).getTime() : null;
+
+  //   return (
+  //     (!fromDateValue || eventDate >= fromDateValue) &&
+  //     (!toDateValue || eventDate <= toDateValue)
+  //   );
+  // });
+
+
+  const handleChangePassword = () => {
     if (newPassword) {
       setAdminCredentials((prevCredentials) => ({
         ...prevCredentials,
@@ -91,12 +102,10 @@ const [adminCredentials, setAdminCredentials] = useState({
     }
   };
 
-  // Logout function
   const handleLogout = () => {
     setIsLoggedIn(false);
   };
 
-  // Add or update event function
   const handleSaveEvent = () => {
     if (!newEvent.name || !newEvent.startDate || !newEvent.endDate) {
       return;
@@ -120,100 +129,115 @@ const [adminCredentials, setAdminCredentials] = useState({
     });
   };
 
-  // Delete event function
   const deleteEvent = (id) => {
     setEvents(events.filter((event) => event.id !== id));
   };
 
-  // Edit event function
   const editEvent = (event) => {
     setNewEvent(event);
     setEditingEventId(event.id);
   };
 
-  // Sort events by start date
-  const sortedEvents = events.sort(
-    (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
-  );
+  const toggleSortOrder = (criterion) => {
+    if (sortCriterion === criterion) {
+      setSortOrder(sortOrder === "asc" ? "desc" : "asc");
+    } else {
+      setSortCriterion(criterion);
+      setSortOrder("asc");
+    }
+  };
+
+  const sortedEvents = [...events].sort((a, b) => {
+    let aValue = a[sortCriterion];
+    let bValue = b[sortCriterion];
+
+    if (sortCriterion === "startDate" || sortCriterion === "endDate") {
+      aValue = new Date(aValue).getTime();
+      bValue = new Date(bValue).getTime();
+    } else {
+      aValue = aValue.toString().toLowerCase();
+      bValue = bValue.toString().toLowerCase();
+    }
+
+    if (sortOrder === "asc") {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
+  const printEvents = () => {
+    const printWindow = window.open("", "_blank");
+    const htmlContent = `
+      <html>
+        <head>
+          <title>Printable Events</title>
+          <style>
+            body { font-family: Arial, sans-serif; }
+            .event-container { margin-bottom: 20px; }
+            h3 { color: #333; }
+            p { margin: 5px 0; }
+          </style>
+        </head>
+        <body>
+          <h1>Event Timeline</h1>
+          ${events
+            .map(
+              (event) => `
+              <div class="event-container">
+                <h3>${event.name}</h3>
+                <p><strong>Start Date:</strong> ${event.startDate}</p>
+                <p><strong>End Date:</strong> ${event.endDate}</p>
+                <p><strong>Description:</strong> ${event.description}</p>
+                <p><strong>Category:</strong> ${event.category}</p>
+              </div>`
+            )
+            .join("")}
+        </body>
+      </html>
+    `;
+    printWindow.document.write(htmlContent);
+    printWindow.document.close();
+    printWindow.print();
+  };
+
+  const openEventDetails = (event) => {
+    setSelectedEvent(event);
+  };
+
+  const closeEventDetails = () => {
+    setSelectedEvent(null);
+  };
 
   return (
     <div className="container my-5">
       <h1 className="text-center mb-4">Event Timeline</h1>
 
-      {!isLoggedIn ? (
-        <>
-          <div className="card p-4 mb-4">
-            <h2 className="mb-3">Login</h2>
-            <div className="mb-3">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-              />
-            </div>
-            <div className="mb-3">
-              <input
-                type="password"
-                className="form-control"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <button onClick={handleLogin} className="btn btn-primary">
-              Login
-            </button>
-          </div>
-          <div className="card">
-            <h2 className="card-header">Events</h2>
-            <ul className="list-group list-group-flush">
-              {sortedEvents.map((event) => (
-                <li
-                  key={event.id}
-                  className="list-group-item d-flex align-items-start"
-                >
-                  <div
-                    className="timeline-icon me-3"
-                    style={{
-                      backgroundColor:
-                        event.category === "Sport"
-                          ? "lightcoral"
-                          : event.category === "Science"
-                          ? "lightgreen"
-                          : event.category === "History"
-                          ? "lightblue"
-                          : "gray",
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                    }}
-                  ></div>
 
-                  <div className="flex-grow-1">
-                    <h3 className="mb-1">{event.name}</h3>
-                    <p className="mb-1 text-muted">
-                      {event.startDate} - {event.endDate}
-                    </p>
-                    <p className="mb-1">{event.description}</p>
-                    <p className="mb-1">
-                      <strong>Category:</strong> {event.category}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </>
+
+      {!isLoggedIn ? (
+        <div className="card p-4 mb-4">
+          <h2 className="mb-3">Login</h2>
+          <input
+            type="text"
+            className="form-control mb-3"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+          <input
+            type="password"
+            className="form-control mb-3"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <button onClick={handleLogin} className="btn btn-primary">Login</button>
+        </div>
       ) : (
         <div>
-          <div className="d-flex justify-content-between align-items-center mb-4">
-            <button onClick={handleLogout} className="btn btn-warning">
-              Logout
-            </button>
-          </div>
-
+          <button onClick={handleLogout} className="btn btn-warning mb-4">Logout</button>
+          <button onClick={printEvents} className="btn btn-secondary mb-4">Print All Events</button>
           <div className="card p-4 mb-4">
             <h3>Change Password</h3>
             <input
@@ -223,125 +247,67 @@ const [adminCredentials, setAdminCredentials] = useState({
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
             />
-            <button onClick={handleChangePassword} className="btn btn-primary">
-              Change Password
-            </button>
+            <button onClick={handleChangePassword} className="btn btn-primary">Change Password</button>
           </div>
 
+  
+
           <div className="card p-4 mb-4">
-            <h2 className="mb-3">
-              {editingEventId ? "Edit Event" : "Add New Event"}
-            </h2>
-            <div className="mb-3">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Event Name"
-                value={newEvent.name}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, name: e.target.value })
-                }
-              />
-            </div>
-            <div className="mb-3">
-              <input
-                type="date"
-                className="form-control"
-                placeholder="Start Date"
-                value={newEvent.startDate}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, startDate: e.target.value })
-                }
-              />
-            </div>
-            <div className="mb-3">
-              <input
-                type="date"
-                className="form-control"
-                placeholder="End Date"
-                value={newEvent.endDate}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, endDate: e.target.value })
-                }
-              />
-            </div>
-            <div className="mb-3">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Description"
-                value={newEvent.description}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, description: e.target.value })
-                }
-              />
-            </div>
-            <div className="mb-3">
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Category"
-                value={newEvent.category}
-                onChange={(e) =>
-                  setNewEvent({ ...newEvent, category: e.target.value })
-                }
-              />
-            </div>
-            <button onClick={handleSaveEvent} className="btn btn-primary">
-              {editingEventId ? "Update Event" : "Add Event"}
-            </button>
+            <h2 className="mb-3">{editingEventId ? "Edit Event" : "Add New Event"}</h2>
+            <input type="text" className="form-control mb-3" placeholder="Event Name" value={newEvent.name} onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} />
+            <input type="date" className="form-control mb-3" placeholder="Start Date" value={newEvent.startDate} onChange={(e) => setNewEvent({ ...newEvent, startDate: e.target.value })} />
+            <input type="date" className="form-control mb-3" placeholder="End Date" value={newEvent.endDate} onChange={(e) => setNewEvent({ ...newEvent, endDate: e.target.value })} />
+            <input type="text" className="form-control mb-3" placeholder="Description" value={newEvent.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} />
+            <input type="text" className="form-control mb-3" placeholder="Category" value={newEvent.category} onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })} />
+            <button onClick={handleSaveEvent} className="btn btn-primary">{editingEventId ? "Update Event" : "Add Event"}</button>
           </div>
 
           <div className="card">
             <h2 className="card-header">Events</h2>
+            <div className="d-flex justify-content-around mb-2">
+              <button onClick={() => toggleSortOrder("name")} className="btn btn-light">Sort by Name</button>
+              <button onClick={() => toggleSortOrder("startDate")} className="btn btn-light">Sort by Start Date</button>
+              <button onClick={() => toggleSortOrder("category")} className="btn btn-light">Sort by Category</button>
+              
+            </div>
             <ul className="list-group list-group-flush">
               {sortedEvents.map((event) => (
-                <li
-                  key={event.id}
-                  className="list-group-item d-flex align-items-start"
-                >
-                  <div
-                    className="timeline-icon me-3"
-                    style={{
-                      backgroundColor:
-                        event.category === "Sport"
-                          ? "lightcoral"
-                          : event.category === "Science"
-                          ? "lightgreen"
-                          : event.category === "History"
-                          ? "lightblue"
-                          : "gray",
-                      width: "30px",
-                      height: "30px",
-                      borderRadius: "50%",
-                    }}
-                  ></div>
+                <li key={event.id} className="list-group-item d-flex align-items-start">
                   <div className="flex-grow-1">
                     <h3 className="mb-1">{event.name}</h3>
-                    <p className="mb-1 text-muted">
-                      {event.startDate} - {event.endDate}
-                    </p>
+                    <p className="mb-1 text-muted">{event.startDate} - {event.endDate}</p>
                     <p className="mb-1">{event.description}</p>
-                    <p className="mb-1">
-                      <strong>Category:</strong> {event.category}
-                    </p>
+                    <p className="mb-1"><strong>Category:</strong> {event.category}</p>
                   </div>
-                  <button
-                    onClick={() => editEvent(event)}
-                    className="btn btn-secondary ms-3"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => deleteEvent(event.id)}
-                    className="btn btn-danger ms-2"
-                  >
-                    Delete
-                  </button>
+                  <button onClick={() => editEvent(event)} className="btn btn-secondary ms-3">Edit</button>
+                  <button onClick={() => deleteEvent(event.id)} className="btn btn-danger ms-2">Delete</button>
+                  <button onClick={() => openEventDetails(event)} className="btn btn-info ms-2">View Details</button>
                 </li>
               ))}
             </ul>
           </div>
+
+          {selectedEvent && (
+            <div className="modal" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
+              <div className="modal-dialog">
+                <div className="modal-content">
+                  <div className="modal-header">
+                    <h5 className="modal-title">{selectedEvent.name}</h5>
+                    <button type="button" className="btn-close" onClick={closeEventDetails}></button>
+                  </div>
+                  <div className="modal-body">
+                    <p><strong>Start Date:</strong> {selectedEvent.startDate}</p>
+                    <p><strong>End Date:</strong> {selectedEvent.endDate}</p>
+                    <p><strong>Description:</strong> {selectedEvent.description}</p>
+                    <p><strong>Category:</strong> {selectedEvent.category}</p>
+                  </div>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-secondary" onClick={closeEventDetails}>Close</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
