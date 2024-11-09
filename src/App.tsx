@@ -56,6 +56,8 @@ function App() {
   });
   const [editingEventId, setEditingEventId] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+
 
   const [sortCriterion, setSortCriterion] = useState("startDate");
   const [sortOrder, setSortOrder] = useState("asc");
@@ -70,22 +72,22 @@ function App() {
     }
   };
 
-  //   // Date filter state
-  //   const [fromDate, setFromDate] = useState("");
-  //   const [toDate, setToDate] = useState("");
+    // Date filter state
+
+    const [fromDate, setFromDate] = useState("");
+    const [toDate, setToDate] = useState("");
+    const [showFilterModal, setShowFilterModal] = useState(false);
   
-
-  // // Function to filter events by date range
-  // const filteredEvents = events.filter(event => {
-  //   const eventDate = new Date(event.startDate).getTime();
-  //   const fromDateValue = fromDate ? new Date(fromDate).getTime() : null;
-  //   const toDateValue = toDate ? new Date(toDate).getTime() : null;
-
-  //   return (
-  //     (!fromDateValue || eventDate >= fromDateValue) &&
-  //     (!toDateValue || eventDate <= toDateValue)
-  //   );
-  // });
+    const filteredEvents = events.filter((event) => {
+      const eventDate = new Date(event.startDate).getTime();
+      const fromDateValue = fromDate ? new Date(fromDate).getTime() : null;
+      const toDateValue = toDate ? new Date(toDate).getTime() : null;
+  
+      return (
+        (!fromDateValue || eventDate >= fromDateValue) &&
+        (!toDateValue || eventDate <= toDateValue)
+      );
+    });
 
 
   const handleChangePassword = () => {
@@ -134,9 +136,11 @@ function App() {
   };
 
   const editEvent = (event) => {
-    setNewEvent(event);
-    setEditingEventId(event.id);
+    setNewEvent(event); // Populate fields with the selected event’s data
+    setShowEditModal(true); // Open the edit modal
+    
   };
+  
 
   const toggleSortOrder = (criterion) => {
     if (sortCriterion === criterion) {
@@ -146,6 +150,24 @@ function App() {
       setSortOrder("asc");
     }
   };
+  
+
+  // Sorting logic applied to filtered events
+const filteredAndSortedEvents = [...filteredEvents].sort((a, b) => {
+  let aValue = a[sortCriterion];
+  let bValue = b[sortCriterion];
+
+  if (sortCriterion === "startDate" || sortCriterion === "endDate") {
+    aValue = new Date(aValue).getTime();
+    bValue = new Date(bValue).getTime();
+  } else {
+    aValue = aValue.toString().toLowerCase();
+    bValue = bValue.toString().toLowerCase();
+  }
+
+  return sortOrder === "asc" ? (aValue > bValue ? 1 : -1) : (aValue < bValue ? 1 : -1);
+});
+
 
   const sortedEvents = [...events].sort((a, b) => {
     let aValue = a[sortCriterion];
@@ -215,7 +237,7 @@ function App() {
 
 
 
-      {!isLoggedIn ? (
+      {isLoggedIn ? (
         <div className="card p-4 mb-4">
           <h2 className="mb-3">Login</h2>
           <input
@@ -263,15 +285,17 @@ function App() {
           </div>
 
           <div className="card">
-            <h2 className="card-header">Events</h2>
+            <h2 className="card-header">Events</h2>          
             <div className="d-flex justify-content-around mb-2">
               <button onClick={() => toggleSortOrder("name")} className="btn btn-light">Sort by Name</button>
               <button onClick={() => toggleSortOrder("startDate")} className="btn btn-light">Sort by Start Date</button>
               <button onClick={() => toggleSortOrder("category")} className="btn btn-light">Sort by Category</button>
+              <button onClick={() => setShowFilterModal(true)} className="btn btn-light">Filter by Date</button>
+
               
             </div>
             <ul className="list-group list-group-flush">
-              {sortedEvents.map((event) => (
+              {filteredAndSortedEvents.map((event) => (
                 <li key={event.id} className="list-group-item d-flex align-items-start">
                   <div className="flex-grow-1">
                     <h3 className="mb-1">{event.name}</h3>
@@ -285,7 +309,50 @@ function App() {
                 </li>
               ))}
             </ul>
+
+
+            
           </div>
+
+
+          {showFilterModal && (
+        <div className="modal" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Filter by Date</h5>
+              </div>
+              <div className="modal-body">
+              <h5>Start date</h5>
+                <input
+                  type="date"
+                  className="form-control mb-3"
+                  placeholder="From Date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                />
+                 <h5>End date</h5>
+                <input
+                  type="date"
+                  className="form-control mb-3"
+                  placeholder="To Date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                />
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-primary" onClick={() => setShowFilterModal(false)}>
+                  Apply Filter
+                </button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowFilterModal(false)}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
 
           {selectedEvent && (
             <div className="modal" style={{ display: "block", backgroundColor: "rgba(0,0,0,0.5)" }}>
