@@ -55,6 +55,14 @@ function App() {
     category: "",
   });
 
+  const [oldEvent, editOldEvent] = useState({
+    name: "",
+    startDate: "",
+    endDate: "",
+    description: "",
+    category: "",
+  });
+
   const [sortCriterion, setSortCriterion] = useState("startDate");
   const [sortOrder, setSortOrder] = useState("asc");
 
@@ -108,16 +116,7 @@ function App() {
     if (!newEvent.name || !newEvent.startDate || !newEvent.endDate) {
       return;
     }
-    if (editingEventId) {
-      setEvents(
-        events.map((event) =>
-          event.id === editingEventId ? { ...event, ...newEvent } : event
-        )
-      );
-      setEditingEventId(null);
-    } else {
-      setEvents([...events, { ...newEvent, id: events.length + 1 }]);
-    }
+    setEvents([...events, { ...newEvent, id: events.length + 1 }]);
     setNewEvent({
       name: "",
       startDate: "",
@@ -126,6 +125,60 @@ function App() {
       category: "",
     });
   };  
+  
+  // const handleEditEvent = () => {
+  //         setEvents(
+  //       events.map((event) =>
+  //         event.id === editingEventId ? { ...event, ...newEvent } : event
+  //       )
+  //     );
+  //     setEditingEventId(null);
+  //     closeEditEvent();
+  // };  
+
+
+  const handleEditEvent = () => {
+    setEvents(
+      events.map((event) =>
+        event.id === editingEventId ? { ...event, ...oldEvent } : event
+      )
+    );
+    setEditingEventId(null);
+    setShowEditModal(false);
+    editOldEvent({
+      name: "",
+      startDate: "",
+      endDate: "",
+      description: "",
+      category: "",
+    });
+  };
+
+
+
+  
+  // const handleSaveEvent = () => {
+  //   if (!newEvent.name || !newEvent.startDate || !newEvent.endDate) {
+  //     return;
+  //   }
+  //   if (editingEventId) {
+  //     setEvents(
+  //       events.map((event) =>
+  //         event.id === editingEventId ? { ...event, ...newEvent } : event
+  //       )
+  //     );
+  //     setEditingEventId(null);
+  //   } else {
+  //     setEvents([...events, { ...newEvent, id: events.length + 1 }]);
+  //   }
+  //   setNewEvent({
+  //     name: "",
+  //     startDate: "",
+  //     endDate: "",
+  //     description: "",
+  //     category: "",
+  //   });
+  // };  
 
   const toggleSortOrder = (criterion) => {
     if (sortCriterion === criterion) {
@@ -214,16 +267,17 @@ const filteredAndSortedEvents = [...filteredEvents].sort((a, b) => {
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [showEditModal, setShowEditModal] = useState(null);
 
+
+
   const editEvent = (event) => {
-   // setNewEvent(event); // Populate fields with the selected event’s data
+    editOldEvent(event); // Populate fields with the selected event’s data
+    setEditingEventId(event.id); // Set editing event ID
     setShowEditModal(event); // Open the edit modal
   };
 
   const closeEditEvent = () => {
     setShowEditModal(null);
   };
-
-
 
   const deleteEvent = (id) => {
     setEvents(events.filter((event) => event.id !== id));
@@ -363,13 +417,13 @@ const filteredAndSortedEvents = [...filteredEvents].sort((a, b) => {
                     <h5 className="modal-title">{showEditModal.name}</h5>
                   </div>
                   <div className="card p-4 mb-4">
-            <h2 className="mb-3">{editingEventId ? "Edit Event" : "Add New Event"}</h2>
-            <input type="text" className="form-control mb-3" placeholder="Event Name" value={showEditModal.name} onChange={(e) => setNewEvent({ ...newEvent, name: e.target.value })} />
-            <input type="date" className="form-control mb-3" placeholder="Start Date" value={showEditModal.startDate} onChange={(e) => setNewEvent({ ...newEvent, startDate: e.target.value })} />
-            <input type="date" className="form-control mb-3" placeholder="End Date" value={showEditModal.endDate} onChange={(e) => setNewEvent({ ...newEvent, endDate: e.target.value })} />
-            <input type="text" className="form-control mb-3" placeholder="Description" value={showEditModal.description} onChange={(e) => setNewEvent({ ...newEvent, description: e.target.value })} />
-            <input type="text" className="form-control mb-3" placeholder="Category" value={showEditModal.category} onChange={(e) => setNewEvent({ ...newEvent, category: e.target.value })} />
-            <button onClick={handleSaveEvent} className="btn btn-primary">{editingEventId ? "Update Event" : "Add Event"}</button>
+            <h2 className="mb-3">Edit Event</h2>
+            <input type="text" className="form-control mb-3" placeholder="Event Name" value={showEditModal.name} onChange={(e) => editEvent({ ...oldEvent, name: e.target.value })} />
+            <input type="date" className="form-control mb-3" placeholder="Start Date" value={showEditModal.startDate} onChange={(e) => editEvent({ ...oldEvent, startDate: e.target.value })} />
+            <input type="date" className="form-control mb-3" placeholder="End Date" value={showEditModal.endDate} onChange={(e) => editEvent({ ...oldEvent, endDate: e.target.value })} />
+            <input type="text" className="form-control mb-3" placeholder="Description" value={showEditModal.description} onChange={(e) => editEvent({ ...oldEvent, description: e.target.value })} />
+            <input type="text" className="form-control mb-3" placeholder="Category" value={showEditModal.category} onChange={(e) => editEvent({ ...oldEvent, category: e.target.value })} />
+            <button onClick={handleEditEvent} className="btn btn-primary">Update Event</button>
           </div> 
 
                   <div className="modal-footer">
