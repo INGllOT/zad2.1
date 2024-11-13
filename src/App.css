@@ -12,6 +12,16 @@
     font-family: Arial, sans-serif;
   }
   
+  .form-row {
+    display: flex;
+    gap: 1rem; /* Optional: space between inputs */
+  }
+  
+  .form-row .form-control {
+    flex: 1; /* This makes each input expand equally */
+  }
+
+  
   /* Styl dla ikon kategorii */
   .timeline-icon {
     width: 30px;
