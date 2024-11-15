@@ -7,8 +7,8 @@ const Auth = ({
     password
 }) => {
   return (
-    <div>
-      <h2 className="mb-3">Login</h2>
+    <div style={{ maxWidth: "400px", margin: "0 auto" }}>
+      <h2 className="mb-3" >Login</h2>
       <input
         type="text"
         className="form-control mb-3"
@@ -26,6 +26,8 @@ const Auth = ({
       <button onClick={handleLogin} className="btn btn-primary">
         Login
       </button>
+
+      
     </div>
   );
 };

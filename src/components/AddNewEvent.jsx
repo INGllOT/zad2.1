@@ -1,5 +1,4 @@
 const AddNewEvent = ({
-
     newEvent,
     setNewEvent,
     handleSaveEvent

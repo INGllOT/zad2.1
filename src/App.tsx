@@ -11,6 +11,7 @@ import Auth from "./components/Authentication";
 import PrintEvents from "./components/PrintEvent";
 import ChangePassword from "./components/ChangePassword";
 import AddNewEvent from "./components/AddNewEvent";
+
 // Modals
 import EditModal from "./components/modals/EditModal";
 import ShowFilterModal from "./components/modals/ShowFilterModal";
@@ -61,6 +62,48 @@ function App() {
       category: "Sport",
     },
   ]);
+
+  // auth
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [adminCredentials, setAdminCredentials] = useState({
+    username: "admin",
+    password: "admin",
+  });
+  
+  // sorting
+  const [sortCriterion, setSortCriterion] = useState("startDate");
+  const [sortOrder, setSortOrder] = useState("asc");
+
+  // date filter state
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  // options
+  const [editingEventId, setEditingEventId] = useState(null);
+  const [selectedEvent, setSelectedEvent] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(null);
+
+ 
+  // edit event
+  const [newEvent, setNewEvent] = useState({
+    name: "",
+    startDate: "",
+    endDate: "",
+    description: "",
+    category: "",
+  });
+  const [oldEvent, editOldEvent] = useState({
+    name: "",
+    startDate: "",
+    endDate: "",
+    description: "",
+    category: "",
+  });
+
 
   const items = useMemo(() => {
     return events.map((event) => {
@@ -115,19 +158,6 @@ function App() {
 
   const timelineRef = useRef(null); // Create a reference for the timeline DOM element
 
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState("");
-  const [password, setPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-
-  const [newEvent, setNewEvent] = useState({
-    name: "",
-    startDate: "",
-    endDate: "",
-    description: "",
-    category: "",
-  });
-
   function getCategoryColor(category: string) {
     switch (category) {
       case "History":
@@ -141,22 +171,6 @@ function App() {
     }
   }
 
-  const [oldEvent, editOldEvent] = useState({
-    name: "",
-    startDate: "",
-    endDate: "",
-    description: "",
-    category: "",
-  });
-
-  const [sortCriterion, setSortCriterion] = useState("startDate");
-  const [sortOrder, setSortOrder] = useState("asc");
-
-  const [adminCredentials, setAdminCredentials] = useState({
-    username: "admin",
-    password: "admin",
-  });
-
   const handleLogin = () => {
     if (
       username === adminCredentials.username &&
@@ -169,11 +183,6 @@ function App() {
       alert("Invalid login credentials");
     }
   };
-
-  // Date filter state
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [showFilterModal, setShowFilterModal] = useState(false);
 
   const filteredEvents = events.filter((event) => {
     const eventDate = new Date(event.startDate).getTime();
@@ -266,14 +275,10 @@ function App() {
       : -1;
   });
 
-
   const printEvents = () => {
     PrintEvents(events);
   };
 
-  const [editingEventId, setEditingEventId] = useState(null);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [showEditModal, setShowEditModal] = useState(null);
 
   const editEvent = (event : any) => {
     editOldEvent(event); // Populate fields with the selected event’s data
@@ -297,12 +302,32 @@ function App() {
     setSelectedEvent(null);
   };
 
+  const renderPrintButton = () => (
+    <button onClick={printEvents} className="btn btn-secondary mb-4">
+      Print All Events
+    </button>
+  );
+
+  const logout = () => (
+    <button onClick={handleLogout} className="btn btn-warning mb-4">
+      Logout
+    </button>
+  );
+
+  const timeline = () => (
+    <div className="card p-4 mb-4">
+      <div ref={timelineRef} />
+    </div>
+  );
+
   return (
-    <div className="container my-5">
+    <div >
       <h1 className="text-center mb-4">Wojciech Inglot (js timeline)</h1>
 
       {!isLoggedIn ? (
-        <div className="card p-4 mb-4">
+        <div>
+          {renderPrintButton()}
+
           <Auth
             setUsername={setUsername}
             setPassword={setPassword}
@@ -310,6 +335,11 @@ function App() {
             username={username}
             password={password}
           />
+
+          <br></br>
+          
+          {timeline()}
+          
           <EventListUnAuth
             events={events}
             filteredAndSortedEvents={filteredAndSortedEvents}
@@ -320,13 +350,10 @@ function App() {
           />
         </div>
       ) : (
-        <div>
-          <button onClick={handleLogout} className="btn btn-warning mb-4">
-            Logout
-          </button>
-          <button onClick={printEvents} className="btn btn-secondary mb-4">
-            Print All Events
-          </button>
+        <div >
+          {logout()}
+
+          {renderPrintButton()}
 
           <ChangePassword
             setNewPassword={setNewPassword}
@@ -340,9 +367,7 @@ function App() {
             handleSaveEvent={handleSaveEvent}
           />
 
-          <div className="container my-5">
-            <div ref={timelineRef} />
-          </div>
+         {timeline()}
 
           <EventList
             events={events}
